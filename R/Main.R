@@ -1,5 +1,5 @@
 
-perform_analysis <- function(data_path, clinical_data) {
+prolog <- function(data_path, clinical_data) {
   library(ggplot2)
   data <- read.csv(data_path)
   clinical_data <- read.csv(clinical_data)
