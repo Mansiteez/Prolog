@@ -1,5 +1,5 @@
 
-perform_analysis <- function(data_path, clinical_data) {
+prolog <- function(data_path, clinical_data) {
   library(ggplot2)
   data <- read.csv(data_path)
   clinical_data <- read.csv(clinical_data)
@@ -126,6 +126,8 @@ perform_analysis <- function(data_path, clinical_data) {
   # Get the index of the "Groups" column
   groups_column_index <- which(colnames(concatenated_data) == "Groups")
 
+  p_values <- list()
+
   # Iterate over each column in protein_filtered_data
   for (i in 1:ncol(protien_filtered_data)) {
     # Add the ith column of protein_filtered_data to filtered_data
@@ -136,10 +138,26 @@ perform_analysis <- function(data_path, clinical_data) {
 
     # Store the glm model in the list
     glm_models[[i]] <- glm_model
-    print(summary(glm_model))
+
+    p_values[[i]] <- summary(glm_model)$coefficients[, "Pr(>|z|)"]
+
+    #print(summary(glm_model))
   }
 
-  # Return the results
-  return(list(filtered_data = filtered_data, protien_filtered_data = protien_filtered_data, concatenated_data = concatenated_data, glm_models = glm_models))
+  # Create an empty data frame to store the results
+  result_df <- data.frame(Protein = character(), P_Value = numeric(), stringsAsFactors = FALSE)
+
+  # Iterate over each protein
+  for (i in 1:length(p_values)) {
+    protein_name <- colnames(protien_filtered_data)[i]
+    p_value <- p_values[[i]][length(p_values[[i]])]
+
+    if (p_value < 0.05) {
+      result_df <- rbind(result_df, data.frame(Protein = protein_name, P_Value = p_value))
+    }
+  }
+
+
+  return(result_df)
 }
 
